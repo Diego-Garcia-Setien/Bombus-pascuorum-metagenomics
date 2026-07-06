@@ -1,6 +1,21 @@
 #!/bin/bash
 
-#Primero creamos la carpeta para guardar los resultados de fastp
+#Como bamos a trabajar con SLURM, tenemos que indicar las instrucciones
+
+#SBATCH --job-name=bp_fastp_results_tfm
+#SBATCH --error=logs/%x-%j.err
+#SBATCH --output=logs/%x-%j.out
+
+#SBATCH --partition=general
+#SBATCH --qos=regular
+#SBATCH --cpus-per-task=8
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=03:00:00
+#SBATCH --mem=12000
+#SBATCH --array=1-93%93
+
+#Creamos la carpeta para guardar los resultados de fastp
 
 mkdir -p ./bombus_pascuorum_metagenomics/data/fastp_results
 
