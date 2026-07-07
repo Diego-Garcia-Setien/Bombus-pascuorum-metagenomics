@@ -35,7 +35,6 @@
 #SBATCH --mem=12000
 
 #Le decimos que cree un Job Array o matriz de tareas, para que el cluster haga 93 tareas al mismo tiempo
-#SBATCH --array=1-93%93
 
 CPU=8
 
@@ -49,17 +48,17 @@ OUTPUT_DIR="$WORKDIR/data/fastp_results"
 
 #Creamos la carpeta para guardar los resultados de fastp
 
-mkdir -p ./bombus_pascuorum_metagenomics/data/fastp_results
+mkdir -p ./data/fastp_results
 
 #Creamos también la carpeta donde se guardaran las lecturas que no superan los filtros
 
-mkdir -p ./bombus_pascuorum_metagenomics/data/fastp_failed
+mkdir -p ./data/fastp_failed
 
 #Vamos a utilizar fastp
 #Tenemos que trabajar con los archivos forward y reverse
 #Primero buscamos los archivos forward
 
-cd $"INPUT_DIR"
+cd "$INPUT_DIR"
 
 for fwd in *_1.fq.gz; do
 	
@@ -78,10 +77,11 @@ for fwd in *_1.fq.gz; do
 
 	#Ejecutamos fastp emparejado
 	fastp \
+		--thread "$CPU" \
 		-i "$fwd" \
 		-I "$rev" \
 		-o "/data/fastp_results/${base}_clean_R1.fq.gz" \
-		-O "/data/fastp_results/${base}_clean_R2.fq.gz"\
+		-O "/data/fastp_results/${base}_clean_R2.fq.gz" \
 		--detect_adapter_for_pe \
 		--trim_poly_g \
 		--trim_poly_x \
@@ -92,5 +92,4 @@ for fwd in *_1.fq.gz; do
 		--html "/data/fastp_results/${base}_report.html" \
 		--json "/data/fastp_results/${base}_report.json" \
 		--failed_out "/data/fastp_failed/${base}_failed_R1.fq.gz" \
-		--failed_out_R2 "/data/fastp_failed/${base}_failed_R2.fq.gz" \
-		--thread "$CPU"
+		--failed_out_R2 "/data/fastp_failed/${base}_failed_R2.fq.gz"
