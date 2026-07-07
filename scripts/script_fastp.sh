@@ -36,6 +36,14 @@
 
 #Le decimos que cree un Job Array o matriz de tareas, para que el cluster haga 93 tareas al mismo tiempo
 
+#######################################
+# Load software
+#######################################
+
+module load Miniforge3/24.11.3-2
+
+conda activate /scratch/lchueca/conda-env/fastp
+
 CPU=8
 
 #Data
@@ -80,16 +88,15 @@ for fwd in *_1.fq.gz; do
 		--thread "$CPU" \
 		-i "$fwd" \
 		-I "$rev" \
-		-o "/data/fastp_results/${base}_clean_R1.fq.gz" \
-		-O "/data/fastp_results/${base}_clean_R2.fq.gz" \
+		-o "/scratch/lchueca/bombus_pascuorum_metagenomics/data/fastp_results/${base}_clean_R1.fq.gz" \
+		-O "/scratch/lchueca/bombus_pascuorum_metagenomics/data/fastp_results/${base}_clean_R2.fq.gz" \
 		--detect_adapter_for_pe \
 		--trim_poly_g \
 		--trim_poly_x \
 		--cut_front 10 \
 		--cut_tail \
-		--n_base_limit \
 		--qualified_quality_phred 33 \
-		--html "/data/fastp_results/${base}_report.html" \
-		--json "/data/fastp_results/${base}_report.json" \
-		--failed_out "/data/fastp_failed/${base}_failed_R1.fq.gz" \
-		--failed_out_R2 "/data/fastp_failed/${base}_failed_R2.fq.gz"
+		--html "/scratch/lchueca/bombus_pascuorum_metagenomics/data/fastp_results/${base}_report.html" \
+		--json "/scratch/lchueca/bombus_pascuorum_metagenomics/data/fastp_results/${base}_report.json" \
+		--failed_out "/scratch/lchueca/bombus_pascuorum_metagenomics/data/fastp_failed/${base}_failed.fq.gz"
+done
