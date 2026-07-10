@@ -18,11 +18,16 @@
 
 module load Miniforge3/24.11.3-2
 
-conda activate /scratch/lchueca/conda-env/fastp
+conda activate /scratch/lchueca/conda-env/bowtie2
 
 CPU=8
 
-
+######################################
+# Script: script_bowtie2.sh
+#
+#
+#
+#
 
 
 WORKDIR=$(pwd)
