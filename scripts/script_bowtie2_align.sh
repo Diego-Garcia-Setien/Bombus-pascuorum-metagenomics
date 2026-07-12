@@ -77,9 +77,9 @@ fi
 #-x     índice del genoma de referencia
 #-1/-2  archivos de lecturas pareadas 1 y 2
 #-S     archivo de salida en formato SAM
-#--no-unal descarta del SAM las lecturas que no alinean
+#--no-unal descarta del SAM las lecturas que no alinean, no lo ponemos porque precisamente estas lecturas son las que nos interesan
 
-bowtie2 --no-unal -p "$CPU" -x "$INDEX" -1 "$R1" -2 "$R2" -S "$OUT_SAM"
+bowtie2 -p "$CPU" -x "$INDEX" -1 "$R1" -2 "$R2" -S "$OUT_SAM"
 
 if [ $? -eq 0 ]; then
     echo "Alineamiento completado correctamente para $SAMPLE"
