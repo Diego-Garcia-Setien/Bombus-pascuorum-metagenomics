@@ -6,12 +6,12 @@
 
 #SBATCH --partition=general
 #SBATCH --qos=regular
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=16
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --time=03:00:00
 #SBATCH --mem=24000
-#SBATCH --array=1-93%40
+#SBATCH --array=1-3%3
 
 ###############################################################################
 # Remove host reads while keeping BOTH host and microbiome reads
@@ -37,8 +37,8 @@ set -euo pipefail
 module load Bowtie2/2.5.5-GCC-14.2.0
 module load SAMtools/1.22-GCC-14.2.0
 
-CPU_BOWTIE=12
-CPU_SAMTOOLS=8
+CPU_BOWTIE=10
+CPU_SAMTOOLS=6
 
 WORKDIR=$(pwd)
 
