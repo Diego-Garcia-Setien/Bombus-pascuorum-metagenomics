@@ -9,13 +9,12 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=01:00:00
 #SBATCH --mem=12000
-#SBATCH --array=1-93%93
+#SBATCH --array=1-3%3
 
 #################################
 # Cargar software
-#################################
-module load Miniforge3/24.11.3-2
-conda activate /scratch/lchueca/conda-env/bowtie2
+################################
+module load Bowtie2/2.5.5-GCC-14.2.0
 
 CPU=8
 
@@ -42,14 +41,11 @@ CPU=8
 WORKDIR=$(pwd)
 INPUT_DIR="$WORKDIR/data/fastp_results"
 OUTPUT_DIR="$WORKDIR/data/bowtie2_results"
-FAILED_DIR="$WORKDIR/data/bowtie2_failed"
-GENOME_DIR="$WORKDIR/data/BP_GENOME"
-INDEX="$GENOME_DIR/bp_index"
+INDEX="/scratch/lchueca/gorbeea_genomic/reference_genomes/GCF_905332965.1_iyBomPasc1.1_genomic"
 SAMPLES_LIST="$WORKDIR/data/samples.txt"
 
 
 mkdir -p "$OUTPUT_DIR"
-mkdir -p "$FAILED_DIR"
 mkdir -p logs
 
 # Selecciona la muestra correspondiente a esta tarea del array
