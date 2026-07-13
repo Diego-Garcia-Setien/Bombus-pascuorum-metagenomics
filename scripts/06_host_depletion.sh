@@ -35,7 +35,7 @@
 set -euo pipefail
 
 module load Bowtie2/2.5.5-GCC-14.2.0
-module load SAMtools/1.22-GCC-14.2.0
+module load SAMtools/1.18-GCC-12.3.0
 
 CPU_BOWTIE=10
 CPU_SAMTOOLS=6
@@ -45,8 +45,6 @@ WORKDIR=$(pwd)
 INPUT_DIR="$WORKDIR/data/fastp_results"
 
 INDEX="$WORKDIR/data/references/BombusPasc"
-
-SAMPLES="$WORKDIR/data/samples.txt"
 
 BAM_DIR="$WORKDIR/data/bam"
 
@@ -65,10 +63,15 @@ mkdir -p "$ALIGN_DIR"
 mkdir -p "$SUMMARY_DIR"
 
 ########################################
-# Get sample
+# Detect sample automatically
 ########################################
 
-SAMPLE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$SAMPLES")
+SAMPLE=$(find "$INPUT_DIR" -maxdepth 1 -name "*_R1.fq.gz" \
+        | sort \
+        | sed -n "${SLURM_ARRAY_TASK_ID}p")
+
+SAMPLE=$(basename "$SAMPLE")
+SAMPLE=${SAMPLE%_R1.fq.gz}
 
 echo
 echo "======================================"
@@ -76,8 +79,15 @@ echo "Processing sample: $SAMPLE"
 echo "======================================"
 echo
 
-R1="$INPUT_DIR/${SAMPLE}_1.fastq.gz"
-R2="$INPUT_DIR/${SAMPLE}_2.fastq.gz"
+R1="$INPUT_DIR/${SAMPLE}_R1.fq.gz"
+R2="$INPUT_DIR/${SAMPLE}_R2.fq.gz"
+
+if [[ ! -f "$R1" || ! -f "$R2" ]]; then
+    echo "FASTQ files not found"
+    echo "$R1"
+    echo "$R2"
+    exit 1
+fi
 
 ########################################
 # Alignment
@@ -90,15 +100,13 @@ bowtie2 \
     -x "$INDEX" \
     -1 "$R1" \
     -2 "$R2" \
-    2> "$ALIGN_DIR/${SAMPLE}.bowtie2.log" |
-
-samtools view \
-    -@ "$CPU_SAMTOOLS" \
-    -b - |
-
-samtools sort \
-    -@ "$CPU_SAMTOOLS" \
-    -o "$BAM_DIR/${SAMPLE}.sorted.bam"
+    2> "$ALIGN_DIR/${SAMPLE}.bowtie2.log" \
+    | samtools view \
+    	-@ "$CPU_SAMTOOLS" \
+    	-b - \
+    | samtools sort \
+    	-@ "$CPU_SAMTOOLS" \
+    	-o "$BAM_DIR/${SAMPLE}.sorted.bam"
 
 ########################################
 # Index BAM
