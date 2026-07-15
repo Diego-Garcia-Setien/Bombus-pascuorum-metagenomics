@@ -7,9 +7,9 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --time=01:00:00
-#SBATCH --mem=12000
-#SBATCH --array=1-93%93
+#SBATCH --time=02:00:00
+#SBATCH --mem=120000
+#SBATCH --array=1-3%3
 
 #################################
 # Cargar software
@@ -27,30 +27,39 @@ CPU=$SLURM_CPUS_PER_TASK
 ######################################
 
 WORKDIR=$(pwd)
-INPUT_DATA="$WORKDIR/data/microbiota_reads"
+INPUT_DIR="$WORKDIR/data/microbiome_reads"
 OUTPUT_DATA="$WORKDIR/data/microbiota_taxonomy"
-SAMPLE_LIST="$WORKDIR/data/samples.txt"
-DATABASE="$WORKDIR/data/kraken_std"
+DATABASE="/data/lchueca/databases/kraken_std"
 
 mkdir -p "$OUTPUT_DATA"
 mkdir -p logs
 
-# Selecciona la muestra correspondiente a esta tarea del array
-SAMPLE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$SAMPLE_LIST")
+###############################################################################
+# Detect sample automatically
+###############################################################################
 
-R1="$INPUT_DATA/${SAMPLE}_microbiota_1.fastq.gz"
-R2="$INPUT_DATA/${SAMPLE}_microbiota_2.fastq.gz"
+R1=$(find "$INPUT_DIR" -maxdepth 1 -name "*_microbiome_R1.fastq.gz" \
+      | sort \
+      | sed -n "${SLURM_ARRAY_TASK_ID}p")
+
+SAMPLE=$(basename "$R1")
+SAMPLE=${SAMPLE%_microbiome_R1.fastq.gz}
+
+R1="$INPUT_DIR/${SAMPLE}_microbiome_R1.fastq.gz"
+R2="$INPUT_DIR/${SAMPLE}_microbiome_R2.fastq.gz"
+
+echo
+echo "=========================================="
+echo "Sample: $SAMPLE"
+echo "=========================================="
+echo
 
 # Procesando la muestra con kraken2
-
-# Usamos --minimum-hit-groups ??
-
-# Usamos --minimum-base-quality ??
 
 # Las secuencias clasificadas o no clasificadas se pueden enviar a un archivo para su posterior procesamiento, utilizando los interruptores --classified-out y , respectivamente.--unclassified-out
 
 
-kraken2 --db "$DATABASE" --threads "$CPU" --paired --minimum-hit-groups 4 --output "$OUTPUT_DATA/${SAMPLE}.kraken2.out" --report "$OUTPUT_DATA/${SAMPLE}.kraken2.report" "$R1" "$R2" --gzip-compressed
+kraken2 --db "$DATABASE" --threads "$CPU" --paired --minimum-hit-groups 2 --output "$OUTPUT_DATA/${SAMPLE}.kraken2.out" --report "$OUTPUT_DATA/${SAMPLE}.kraken2.report" --gzip-compressed "$R1" "$R2"
 
 
 echo "Clasificación taxonómica de $SAMPLE terminada"
