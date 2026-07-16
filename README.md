@@ -17,8 +17,8 @@ bombus_pascuorum_metagenomics/
 │   ├── 03.Mapping.Stats/       # Host-mapping statistics
 │   │   ├── logs_alignment/
 │   │   └── mapping_summary/
-│   ├── 06.MicrobiotaTaxonomy/  # Kraken2 taxonomic classification
-│   ├── 06.BrackenTaxonomy/     # Bracken abundance estimation
+│   ├── 05.MicrobiotaTaxonomy/  # Kraken2 taxonomic classification
+│   ├── 05.BrackenTaxonomy/     # Bracken abundance estimation
 │   ├── QC/
 │   │   ├── 01.FastQC_MultiQC/  # QC report on raw reads
 │   │   ├── 03.FastQC_MultiQC/  # QC report on clean reads
