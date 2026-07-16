@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=03_quality_check
-#SBATCH --error=logs/%x-%j.err
-#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j_%a.err
+#SBATCH --output=logs/%x-%j_%a.out
 #SBATCH --partition=general
 #SBATCH --qos=regular
 #SBATCH --cpus-per-task=6
@@ -12,20 +12,22 @@
 #SBATCH --array=1-93%93      # Adjust to the total number of samples
 
 ###############################################################################
-# Script: 01_quality_check.sh
+# Script: 03_qulity_check_fastp.sh
 #
 # Description:
-#   Perform quality assessment of raw Illumina FASTQ files using FastQC.
-#   Each array task processes one sample. Once every array task has
-#   finished, a single MultiQC run is triggered automatically.
+#   Perform quality assessment of clean (post-fastp) Illumina FASTQ files
+#   using FastQC. Each array task processes one sample. Once every array
+#   task has finished, two MultiQC reports are generated automatically:
+#     1. FastQC report on clean reads
+#     2. fastp report (aggregating per-sample fastp JSON/HTML reports)
 #
 #   Completion is tracked via per-task marker files combined with a
-#   lock file (flock), so MultiQC is guaranteed to run exactly once,
-#   only after all FastQC tasks have completed, regardless of the
-#   order in which array tasks finish.
+#   lock file (flock), so both MultiQC runs are guaranteed to happen
+#   exactly once, only after all FastQC tasks have completed, regardless
+#   of the order in which array tasks finish.
 #
 # Usage:
-#   sbatch 01_quality_check.sh
+#   sbatch 03_qulity_check_fastp.sh
 #
 ###############################################################################
 set -euo pipefail
@@ -45,9 +47,9 @@ TOTAL_TASKS=$SLURM_ARRAY_TASK_COUNT
 WORKDIR=$(pwd)
 CLEANDATA_DIR="$WORKDIR/data/02.CleanReads"
 FASTQC_DIR="$WORKDIR/data/QC/03.FastQC_MultiQC"
-FASTP_REP="$WORKDIR/data/QC/Fastp/"
+REPORT_DIR="$WORKDIR/data/QC/02.Fastp"
 FASTP_DIR="$WORKDIR/data/QC/03.Fastp_MultiQC"
-DONE_DIR="$FASTQC_DIR/.done"
+DONE_DIR="$FASTQC_DIR/.done_${SLURM_ARRAY_JOB_ID}"
 
 # Create output directories
 mkdir -p "$FASTQC_DIR" "$FASTP_DIR" "$DONE_DIR"
@@ -88,7 +90,8 @@ touch "$DONE_DIR/${SLURM_ARRAY_TASK_ID}.done"
 
 # Check whether all array tasks have finished. The lock ensures only one
 # task can evaluate/trigger MultiQC at a time, even if several tasks
-# finish almost simultaneously.
+# finish almost simultaneously. Both MultiQC runs (FastQC on clean reads,
+# and fastp reports) happen here, guaranteed to run exactly once.
 (
     flock -n 200 || exit 0
 
@@ -97,7 +100,7 @@ touch "$DONE_DIR/${SLURM_ARRAY_TASK_ID}.done"
         echo
         echo "=========================================="
         echo "All $TOTAL_TASKS FastQC tasks finished."
-        echo "Running MultiQC"
+        echo "Running MultiQC on FastQC reports"
         echo "=========================================="
         echo
 
@@ -106,27 +109,21 @@ touch "$DONE_DIR/${SLURM_ARRAY_TASK_ID}.done"
             --outdir "$FASTQC_DIR" \
             --force
 
+        echo
+        echo "=========================================="
+        echo "Running MultiQC on fastp reports"
+        echo "=========================================="
+        echo
+
+        multiqc \
+            "$REPORT_DIR" \
+            --outdir "$FASTP_DIR" \
+            --force
+
         touch "$FASTQC_DIR/.multiqc_done"
         rm -rf "$DONE_DIR"
     fi
 ) 200>"$FASTQC_DIR/.multiqc.lock"
-
-#######################################
-# Running MultiQC for fastp stats
-#######################################
-
-echo
-echo "Generating MultiQC report..."
-echo
-
-multiqc \
-    "$FASTP_REP" \
-    --outdir "$FASTP_DIR" \
-    --force
-
-echo
-echo "MultiQC report created successfully."
-echo
 
 echo
 echo "Done."
