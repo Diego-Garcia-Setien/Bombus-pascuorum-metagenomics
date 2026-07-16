@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=bp_kraken2_tfm
+#SBATCH --job-name=06_kraken2
 #SBATCH --error=logs/%x-%A_%a.err
 #SBATCH --output=logs/%x-%A_%a.out
 #SBATCH --partition=general
@@ -29,11 +29,13 @@ CPU=$SLURM_CPUS_PER_TASK
 ######################################
 
 WORKDIR=$(pwd)
-INPUT_DIR="$WORKDIR/data/microbiome_reads"
-OUTPUT_DATA="$WORKDIR/data/microbiota_taxonomy"
-DATABASE="/data/lchueca/databases/kraken_std"
+INPUT_DIR="$WORKDIR/data/03.MicrobiomeReads"
+KRAKEN_OUT="$WORKDIR/data/05.MicrobiotaTaxonomy"
+BRACKEN_OUT="$WORKDIR/data/05.BrackenTaxonomy"
+DATABASE="/data/lchueca/databases/kraken_std"	# Here place kraken2 database
 
-mkdir -p "$OUTPUT_DATA"
+mkdir -p "$KRAKEN_OUT"
+mkdir -p "$BRACKEN_OUT"
 mkdir -p logs
 
 ###############################################################################
@@ -65,8 +67,8 @@ echo
 
 kraken2 --db "$DATABASE" \
       --threads "$CPU" --paired --minimum-hit-groups 2 \
-      --output "$OUTPUT_DATA/${SAMPLE}.kraken2.out" \
-      --report "$OUTPUT_DATA/${SAMPLE}.kraken2.report" \
+      --output "$KRAKEN_OUT/${SAMPLE}.kraken2.out" \
+      --report "$KRAKEN_OUT/${SAMPLE}.kraken2.report" \
       --gzip-compressed "$R1" "$R2"
 
 
@@ -75,12 +77,7 @@ echo "Clasificación taxonómica de $SAMPLE terminada"
 # Vamos a usar Bracken, que es un programa complementario de Kraken2, 
 # Sirve para estimar la abundancia en un solo nivel taxonómico
 
-
-BRACKEN_DATA="$WORKDIR/data/bracken_taxonomy_results"
-
-mkdir -p "$BRACKEN_DATA"
-
-bracken -d "$DATABASE" -i "$OUTPUT_DATA/${SAMPLE}.kraken2.report" \
-      -o "$BRACKEN_DATA/${SAMPLE}.bracken_output" -w "$BRACKEN_DATA/${SAMPLE}.bracken.kreport" -l S \
+bracken -d "$DATABASE" -i "$KRAKEN_OUT/${SAMPLE}.kraken2.report" \
+      -o "$BRACKEN_OUT/${SAMPLE}.bracken_output" -w "$BRACKEN_OUT/${SAMPLE}.bracken.kreport" -l S \
       -t "$CPU"
 
