@@ -20,8 +20,8 @@ bombus_pascuorum_metagenomics/
 │   ├── 06.BrackenTaxonomy/     # Bracken abundance estimation
 │   ├── QC/
 │   │   ├── 01.FastQC_MultiQC/  # QC report on raw reads
-│   │   ├── 03_FastQC_MultiQC/  # QC report on clean reads
-│   │   └── 03_Fastp_MultiQC/   # MultiQC report on fastp output
+│   │   ├── 03.FastQC_MultiQC/  # QC report on clean reads
+│   │   └── 03.Fastp_MultiQC/   # MultiQC report on fastp output
 │   └── references/             # Host genome and Bowtie2 index
 ├── scripts/                    # Pipeline scripts (submitted via SLURM)
 └── logs/                       # SLURM .out / .err files
