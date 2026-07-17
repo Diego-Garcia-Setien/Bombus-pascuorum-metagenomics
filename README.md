@@ -47,6 +47,7 @@ bombus_pascuorum_metagenomics/
 - Bowtie2
 - Kraken2
 - Bracken
+- Megahit
 - SLURM workload manager
 
 ## Usage
