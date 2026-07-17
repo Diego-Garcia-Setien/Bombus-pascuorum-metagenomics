@@ -39,18 +39,30 @@ mkdir -p "$BRACKEN_OUT"
 mkdir -p logs
 
 ###############################################################################
-# Detect sample automatically
+# Detect sample automatically (one subdirectory per sample, same layout
+# as 01_quality_check.sh / 02_fastp.sh / 05_host_depletion.sh)
 ###############################################################################
 
-R1=$(find "$INPUT_DIR" -maxdepth 1 -name "*_microbiome_R1.fastq.gz" \
-      | sort \
-      | sed -n "${SLURM_ARRAY_TASK_ID}p")
+cd "$INPUT_DIR"
 
-SAMPLE=$(basename "$R1")
-SAMPLE=${SAMPLE%_microbiome_R1.fastq.gz}
+SAMPLE=$(find . -mindepth 1 -maxdepth 1 -type d | sort | sed -n "${SLURM_ARRAY_TASK_ID}p")
+SAMPLE=${SAMPLE#./}
 
-R1="$INPUT_DIR/${SAMPLE}_microbiome_R1.fastq.gz"
-R2="$INPUT_DIR/${SAMPLE}_microbiome_R2.fastq.gz"
+if [[ -z "$SAMPLE" ]]; then
+    echo "ERROR: Sample not found."
+    exit 1
+fi
+
+SAMPLE_DIR="$INPUT_DIR/$SAMPLE"
+
+R1=$(find "$SAMPLE_DIR" -maxdepth 1 -name "*_microbiome_R1.fastq.gz" | head -1 || true)
+R2=$(find "$SAMPLE_DIR" -maxdepth 1 -name "*_microbiome_R2.fastq.gz" | head -1 || true)
+
+if [[ -z "$R1" || -z "$R2" ]]; then
+    echo "ERROR: FASTQ files not found."
+    echo "$SAMPLE_DIR"
+    exit 1
+fi
 
 echo
 echo "=========================================="
